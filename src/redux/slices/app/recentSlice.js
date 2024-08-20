@@ -12,7 +12,7 @@ export const recentSlice = createSlice({
                 state.recentSearch.shift(); // Remove the oldest search (first item)
             }
             if((state.recentSearch.includes(action.payload))){
-                const tempArray = state.recentSearch.filter((item)=>item !== action.payload)
+                const tempArray = state.recentSearch?.filter((item)=>item !== action.payload)
                 state.recentSearch = tempArray;
                 // state.recentSearch.push(action.payload);
             }

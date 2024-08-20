@@ -1,41 +1,101 @@
-import React, {useState} from 'react'
-import { useSelector } from 'react-redux'
+import React, { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 // import { useGetGeoCoordinatesQuery } from '../redux/slices/api/WeatherApi';
 // import { useGetGeoCoordinatesQuery } from '../redux/slices/api/weatherApi';
-import { useGetGeoCoordinatesQuery } from '../redux/slices/features/weatherApi';
-
+import { useGetGeoCoordinatesQuery } from "../redux/slices/features/weatherApi";
+import { recentSearchActions } from "../redux/slices/app/recentSlice";
 
 function WeatherDisplay() {
   const [toggleUnit, setToggleUnit] = useState(true);
-  const searchedData = useSelector(state => state.search.searchedData)
-  
-  const {data, isError, isLoading, isSuccess} = useGetGeoCoordinatesQuery(searchedData);
-  if(isLoading){return <p>Loading.....</p>}
-  if(isError && !data){return <p>Error</p>}
+  const searchedData = useSelector((state) => state.search.searchedData);
+  const dispatch = useDispatch();
 
-  const temperature = ((data.main.temp)-273.15).toFixed(2);
-  // toggleUnit ? temperature : temperature = (temperature * 9/5) + 32 
+  const { data, isError, isLoading, isSuccess, error } =
+    useGetGeoCoordinatesQuery(searchedData, {
+      skip: !searchedData || searchedData.trim() === "",
+    });
+  // console.log(data);
+  useEffect(() => {
+    if (isSuccess && !isError) {
+      dispatch(recentSearchActions.storeSearch(data?.name));
+    }
+  }, [isSuccess, isError, data, dispatch]);
 
+  if (isLoading) {
+    return <p>Loading.....</p>;
+  }
+  // console.log(error);
+  // console.log(isError);
+
+  if (isError) {
+    return (
+      <p className="bg-gradient-to-b from-gray-300 to-gray-600 mx-96 p-3 rounded-lg shadow-xl">
+        Please enter Correct city name
+      </p>
+    );
+  }
+  // if(!isSuccess){return <p>No data to dispaly</p>}
+
+  let temperature;
+
+  if (toggleUnit) {
+    temperature = (data?.main.temp - 273.15).toFixed(2);
+  } else {
+    temperature = (((data?.main.temp - 273.15) * 9) / 5 + 32).toFixed(2);
+  }
   // const temp = ()=>{
   //   return data.main.temp - 273.15;
   // }
-  // const handleToggle = ()=>{
-  //   setToggleUnit(!toggleUnit);
-  // }
-  
+  const handleToggle = () => {
+    setToggleUnit(!toggleUnit);
+  };
+
+  const iconCode = data?.weather[0].icon;
+  const iconUrl = `http://openweathermap.org/img/wn/${iconCode}.png`;
+
   return (
-    <div className='w-full max-w-lg mx-auto mb-14 p-8 bg-gradient-to-b from-gray-300 to-gray-600 rounded-lg shadow-xl'>
-      <h1>WeatherDisplay</h1>
-      <p>Searched City: {searchedData}</p>
-      {isSuccess && <div>
-        {/* <h1>Temp: {data.main.temp}</h1> */}
-        <h1>Temp: {temperature}°C</h1>
-        <p>Weather: {data.weather[0].description}</p>
-        <p>Wind: {data.wind.speed}</p>
-        {/* <button onClick={handleToggle} className='bg-white'>{toggleUnit ? 'Celcius' : 'Fargengr'}</button> */}
-      </div>}
+    <div className="w-full max-w-lg mx-auto my-20 p-8 bg-gradient-to-b from-gray-300 to-gray-600 rounded-lg shadow-xl">
+      <h1 className="text-2xl font-bold mb-4">Weather Display</h1>
+      
+      {isSuccess && (
+        
+        <div className="space-y-4">
+        <p className="text-lg mb-2">
+        Searched City: <span className="font-semibold">{searchedData}</span>
+      </p>
+          <div className="flex">
+            <div>
+              <h2 className="text-3xl font-semibold">
+                Temp: {toggleUnit ? `${temperature}°C` : `${temperature}°F`}
+              </h2>
+              <p className="text-lg">
+                Weather:{" "}
+                <span className="font-medium">
+                  {data?.weather[0].description}
+                </span>
+              </p>
+            </div>
+
+            <img
+              src={iconUrl}
+              alt="Weather icon"
+              className=" h-16 object-cover mb-4"
+            />
+          </div>
+          <p className="text-lg">
+            Wind: <span className="font-medium">{data?.wind.speed} m/s</span>
+          </p>
+
+          <button
+            onClick={handleToggle}
+            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            {toggleUnit ? "Fahrenheit" : "Celsius"}
+          </button>
+        </div>
+      )}
     </div>
-  )
+  );
 }
 
-export default WeatherDisplay
+export default WeatherDisplay;

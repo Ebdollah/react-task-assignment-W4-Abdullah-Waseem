@@ -3,6 +3,7 @@ import { useDispatch } from "react-redux";
 import { searchActions } from "../redux/slices/app/searchSlice";
 import { recentSearchActions } from "../redux/slices/app/recentSlice";
 import RecentSearches from "./RecentSearches";
+import { useGetGeoCoordinatesQuery } from "../redux/slices/features/weatherApi";
 
 export default function Search() {
   const cityName = useRef();
@@ -11,8 +12,17 @@ export default function Search() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    dispatch(recentSearchActions.storeSearch(cityName.current.value));
     dispatch(searchActions.setSearchedData(cityName.current.value));
+    // cityName.current = '';
+    // const {data, isError, isLoading, isSuccess} = useGetGeoCoordinatesQuery(cityName.current.value,{
+    //   skip: !cityName.current.value || cityName.current.value.trim() === "",
+    // });
+    // console.log(isSuccess)
+    // console.log(isError)
+    // if(isSuccess){
+    //   dispatch(recentSearchActions.storeSearch(cityName.current.value));
+    // }
+    
     setShowRecentSearches(false); // Hide dropdown after search
   };
 
