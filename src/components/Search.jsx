@@ -1,9 +1,7 @@
 import React, { useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import { searchActions } from "../redux/slices/app/searchSlice";
-import { recentSearchActions } from "../redux/slices/app/recentSlice";
 import RecentSearches from "./RecentSearches";
-import { useGetGeoCoordinatesQuery } from "../redux/slices/features/weatherApi";
 
 export default function Search() {
   const cityName = useRef();
@@ -12,17 +10,11 @@ export default function Search() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    dispatch(searchActions.setSearchedData(cityName.current.value));
-    // cityName.current = '';
-    // const {data, isError, isLoading, isSuccess} = useGetGeoCoordinatesQuery(cityName.current.value,{
-    //   skip: !cityName.current.value || cityName.current.value.trim() === "",
-    // });
-    // console.log(isSuccess)
-    // console.log(isError)
-    // if(isSuccess){
-    //   dispatch(recentSearchActions.storeSearch(cityName.current.value));
-    // }
-    
+    const value = cityName.current.value.trim();
+    if (value) {
+      dispatch(searchActions.setSearchedData(value));
+      dispatch(recentSearchActions.storeSearch(value));
+    }
     setShowRecentSearches(false); // Hide dropdown after search
   };
 
@@ -43,16 +35,19 @@ export default function Search() {
                 name="name"
                 className="appearance-none block mr-1 w-full bg-gray-700 text-gray-300 border border-gray-600 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-gray-600"
                 onFocus={() => setShowRecentSearches(true)}
-                onBlur={() => setTimeout(() => setShowRecentSearches(false), 200)} // Delay hiding to allow click
+                onBlur={() => setTimeout(() => setShowRecentSearches(false), 200)}
               />
-              <button className="px-4 py-3 mb-3 bg-teal-800 text-white rounded hover:bg-teal-700">
+              <button
+                type="submit"
+                className="px-4 py-3 mb-3 bg-teal-800 text-white rounded hover:bg-teal-700"
+              >
                 Search
               </button>
             </div>
           </div>
         </div>
       </form>
-      {showRecentSearches && <RecentSearches />}
+      {showRecentSearches && <RecentSearches onClose={() => setShowRecentSearches(false)} />}
     </div>
   );
 }
